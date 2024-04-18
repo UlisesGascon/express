@@ -22,9 +22,25 @@ jobs:
           fi
 
       - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # v3.0.0
-        with:
-          token: "${{ secrets.PAT_INTEGRATION_TESTS}}"
-          repository: expressjs/examples
-          event-type: integration-tests
-          client-payload: '{"branch": "${{ steps.get_branch.outputs.branch }}", "repo": "${{ steps.get_repo.outputs.repo }}"}'
+        env:
+          TOKEN: ${{ secrets.PAT_INTEGRATION_TESTS }}
+        run: |
+          response=$(curl -X POST https://api.github.com/repos/expressjs/examples/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          -H "Authorization: token $TOKEN" \
+          --data '{"event_type": "integration-tests", "client_payload": {"branch": "${{ steps.get_branch.outputs.branch }}", "repo": "${{ steps.get_repo.outputs.repo }}"}}')
+
+          workflow_url=$(echo "$response" | jq -r .url)
+
+          status=""
+          while [[ "$status" != "completed" ]]; do
+            sleep 10
+            response=$(curl -H "Authorization: token $TOKEN" $workflow_url)
+            status=$(echo "$response" | jq -r .status)
+          done
+
+          conclusion=$(echo "$response" | jq -r .conclusion)
+          if [[ "$conclusion" != "success" ]]; then
+            echo "Workflow failed"
+            exit 1
+          fi
