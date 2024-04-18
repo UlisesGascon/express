@@ -39,12 +39,15 @@ jobs:
 
           status=""
           while [[ "$status" != "completed" ]]; do
+            echo "checking..."
             sleep 10
             response=$(curl -H "Authorization: token $TOKEN" $workflow_url)
             status=$(echo "$response" | jq -r .status)
+            echo "current status: $status"
           done
 
           conclusion=$(echo "$response" | jq -r .conclusion)
+          echo "The conclusion of the workflow run is: $conclusion"
           if [[ "$conclusion" != "success" ]]; then
             echo "Workflow failed"
             exit 1
