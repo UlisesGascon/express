@@ -56,6 +56,10 @@ jobs:
           # Get the conclusion of the workflow run
           conclusion=$(echo "$response" | jq -r .conclusion)
 
+          # Get the URL of the workflow run
+          html_url=$(echo "$response" | jq -r .html_url)
+          echo "Check the workflow run for details: $html_url"
+
           if [[ "$status" == "completed" && "$conclusion" != "success" ]]; then
             echo "Workflow completed but failed. Conclusion: $conclusion"
             exit 1
