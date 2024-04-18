@@ -25,7 +25,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.PAT_INTEGRATION_TESTS }}
         run: |
-          response=$(curl -X POST https://api.github.com/repos/expressjs/examples/dispatches \
+          response=$(curl -X POST https://api.github.com/repos/UlisesGascon/express-examples/dispatches \
           -H 'Accept: application/vnd.github.everest-preview+json' \
           -H "Authorization: token $TOKEN" \
           --data '{"event_type": "integration-tests", "client_payload": {"branch": "${{ steps.get_branch.outputs.branch }}", "repo": "${{ steps.get_repo.outputs.repo }}"}}')
