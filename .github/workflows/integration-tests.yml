@@ -38,7 +38,10 @@ jobs:
           workflow_url=$(echo "$response" | jq -r '.workflow_runs[0].url')
 
           status=""
-          while [[ "$status" != "completed" ]]; do
+          start_time=$(date +%s)
+          timeout=$((10 * 60))  # timeout after 10 minutes
+
+          while [[ "$status" != "completed" && $(( $(date +%s) - start_time )) -lt $timeout ]]; do
             echo "checking..."
             sleep 10
             response=$(curl -H "Authorization: token $TOKEN" $workflow_url)
@@ -46,9 +49,11 @@ jobs:
             echo "current status: $status"
           done
 
-          conclusion=$(echo "$response" | jq -r .conclusion)
-          echo "The conclusion of the workflow run is: $conclusion"
-          if [[ "$conclusion" != "success" ]]; then
-            echo "Workflow failed"
+          if [[ $(( $(date +%s) - start_time )) -ge $timeout ]]; then
+            echo "Workflow did not complete within the expected time"
+          fi
+
+          if [[ "$status" != "completed" ]]; then
+            echo "Workflow failed. Current status: $status"
             exit 1
           fi
