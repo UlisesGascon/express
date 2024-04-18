@@ -21,31 +21,31 @@ jobs:
             echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
           fi
 
-          - name: Repository Dispatch
-          env:
-            TOKEN: ${{ secrets.PAT_INTEGRATION_TESTS }}
-          run: |
-            curl -X POST https://api.github.com/repos/UlisesGascon/express-examples/dispatches \
-            -H 'Accept: application/vnd.github.everest-preview+json' \
-            -H "Authorization: token $TOKEN" \
-            --data '{"event_type": "integration-tests", "client_payload": {"branch": "${{ steps.get_branch.outputs.branch }}", "repo": "${{ steps.get_repo.outputs.repo }}"}}'
-  
-            # Wait for the workflow to start
-            sleep 60
-  
-            # Get the latest workflow run
-            response=$(curl -H "Authorization: token $TOKEN" https://api.github.com/repos/UlisesGascon/express-examples/actions/runs)
-            workflow_url=$(echo "$response" | jq -r '.workflow_runs[0].url')
-  
-            status=""
-            while [[ "$status" != "completed" ]]; do
-              sleep 10
-              response=$(curl -H "Authorization: token $TOKEN" $workflow_url)
-              status=$(echo "$response" | jq -r .status)
-            done
-  
-            conclusion=$(echo "$response" | jq -r .conclusion)
-            if [[ "$conclusion" != "success" ]]; then
-              echo "Workflow failed"
-              exit 1
-            fi
+      - name: Repository Dispatch
+        env:
+          TOKEN: ${{ secrets.PAT_INTEGRATION_TESTS }}
+        run: |
+          curl -X POST https://api.github.com/repos/UlisesGascon/express-examples/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          -H "Authorization: token $TOKEN" \
+          --data '{"event_type": "integration-tests", "client_payload": {"branch": "${{ steps.get_branch.outputs.branch }}", "repo": "${{ steps.get_repo.outputs.repo }}"}}'
+
+          # Wait for the workflow to start
+          sleep 60
+
+          # Get the latest workflow run
+          response=$(curl -H "Authorization: token $TOKEN" https://api.github.com/repos/UlisesGascon/express-examples/actions/runs)
+          workflow_url=$(echo "$response" | jq -r '.workflow_runs[0].url')
+
+          status=""
+          while [[ "$status" != "completed" ]]; do
+            sleep 10
+            response=$(curl -H "Authorization: token $TOKEN" $workflow_url)
+            status=$(echo "$response" | jq -r .status)
+          done
+
+          conclusion=$(echo "$response" | jq -r .conclusion)
+          if [[ "$conclusion" != "success" ]]; then
+            echo "Workflow failed"
+            exit 1
+          fi
