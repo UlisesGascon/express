@@ -5,7 +5,7 @@ on:
     - push
 
 jobs:
-  dispatch:
+  e2e_tests:
     runs-on: ubuntu-latest
     steps:
       - name: Get the branch name
@@ -56,4 +56,9 @@ jobs:
           if [[ "$status" != "completed" ]]; then
             echo "Workflow failed. Current status: $status"
             exit 1
+          fi
+
+          if [[ "$status" == "completed" ]]; then
+            echo "Workflow has been completed"
+            exit 0
           fi
