@@ -53,12 +53,15 @@ jobs:
             echo "Workflow did not complete within the expected time"
           fi
 
-          if [[ "$status" != "completed" ]]; then
-            echo "Workflow failed. Current status: $status"
+          # Get the conclusion of the workflow run
+          conclusion=$(echo "$response" | jq -r .conclusion)
+
+          if [[ "$status" == "completed" && "$conclusion" != "success" ]]; then
+            echo "Workflow completed but failed. Conclusion: $conclusion"
             exit 1
           fi
 
-          if [[ "$status" == "completed" ]]; then
-            echo "Workflow has been completed"
+          if [[ "$status" == "completed" && "$conclusion" == "success" ]]; then
+            echo "Workflow has been completed successfully"
             exit 0
           fi
